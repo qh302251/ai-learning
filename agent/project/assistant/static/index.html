@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="utf-8">
+  <title>知识库助手</title>
+  <style>
+    body { font-family: system-ui, "Microsoft YaHei", sans-serif; max-width: 780px; margin: 40px auto; color: #222; }
+    h2 { margin-bottom: 4px; }
+    .sub { color: #999; font-size: 13px; margin-top: 0; }
+    #out { white-space: pre-wrap; border: 1px solid #ddd; border-radius: 8px;
+           padding: 12px; min-height: 260px; line-height: 1.6; }
+    #meta { color: #888; font-size: 13px; min-height: 20px; margin: 8px 0; }
+    input { width: 68%; padding: 8px; border: 1px solid #ccc; border-radius: 6px; }
+    #key { width: 68%; margin-bottom: 8px; }
+    button { padding: 8px 18px; border: 0; border-radius: 6px; background: #2563eb;
+             color: #fff; cursor: pointer; }
+    button:disabled { background: #9ca3af; cursor: default; }
+  </style>
+</head>
+<body>
+  <h2>个人知识库助手</h2>
+  <p class="sub">FastAPI + LangGraph + SSE 流式 · 线程 web-demo · ★ 需 API Key</p>
+
+  <div>
+    <input id="key" placeholder="API Key（例：sk-alice-demo-key）">
+  </div>
+  <div>
+    <input id="msg" placeholder="问点什么…">
+    <button id="send">发送</button>
+  </div>
+  <p id="meta"></p>
+  <div id="out"></div>
+
+<script>
+const out    = document.getElementById('out');
+const meta   = document.getElementById('meta');
+const sendBtn = document.getElementById('send');
+
+sendBtn.onclick = async () => {
+  const message   = document.getElementById('msg').value;
+  const apiKey    = document.getElementById('key').value.trim();   
+  const thread_id = 'web-demo';
+
+  out.textContent  = '';
+  meta.textContent = '连接中…';
+  sendBtn.disabled = true;
+
+  try {
+    // ★1 用 POST（EventSource 做不到），自定义头将来也能加
+    const resp = await fetch('/chat/stream', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + apiKey,   // ★5 认证：没它 → 401
+      },
+      body: JSON.stringify({message, thread_id}),
+    });
+
+    // ★6 流式响应也必须先查状态码
+    if (!resp.ok) {
+      meta.textContent = 'HTTP ' + resp.status + '：' + (await resp.text()).slice(0, 160);
+      return;
+    }
+
+    // ★2 拿到增量读取器：不要 await resp.json()，那会等全部到齐
+    const reader  = resp.body.getReader();
+    const decoder = new TextDecoder();
+    let buf = '';
+
+    while (true) {
+      const {done, value} = await reader.read();
+      if (done) break;
+
+      // ★3 中文可能被切断在字节中间 → 必须 stream:true
+      buf += decoder.decode(value, {stream: true});
+
+      // ★4 SSE 的帧边界是空行；最后一段可能不完整，留给下一轮
+      const parts = buf.split('\n\n');
+      buf = parts.pop();
+
+      for (const part of parts) {
+        if (!part.startsWith('data: ')) continue;
+        handle(JSON.parse(part.slice(6)));
+      }
+    }
+    meta.textContent = '完成';
+  } catch (err) {
+    meta.textContent = '出错：' + err;
+  } finally {
+    sendBtn.disabled = false;
+  }
+};
+
+function handle(ev) {
+  if (ev.type === 'text') {
+    out.textContent += ev.data;                 // 逐字追加 = 打字机
+  } else if (ev.type === 'tool_call') {
+    meta.textContent = '🔧 调用工具：' + ev.data;
+  } else if (ev.type === 'tool_done') {
+    meta.textContent = ev.data;
+  } else if (ev.type === 'interrupt') {
+    meta.textContent = '⚠️ 需要人工审批：' + ev.data + '（用 /chat/resume 答复）';
+  } else if (ev.type === 'end') {
+    meta.textContent = '完成';
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,134 @@
+Uniform convergence and a posteriori error estimation for assumed stress
+hybrid finite element methods
+Guozhu Yu a
+, Xiaoping Xie a,⇑
+, Carsten Carstensen b,c
+a School of Mathematics, Sichuan University, Chengdu 610064, China
+b Institut für Mathematik, Humboldt Universität zu Berlin, Unter den Linden 6, 10099 Berlin, Germany
+cDepartment of Computational Science and Engineering, Yonsei University, 120-749 Seoul, Republic of Korea
+article info
+Article history:
+Received 5 October 2010
+Received in revised form 13 February 2011
+Accepted 30 March 2011
+Available online 7 April 2011
+Keywords:
+Finite element
+Assumed stress hybrid method
+Hellinger–Reissner principle
+Poisson-locking
+A posteriori estimator
+abstract
+Assumed stress hybrid methods are known to improve the performance of standard displacement-based
+finite elements and are widely used in computational mechanics. The methods are based on the Hellinger–Reissner variational principle for the displacement and stress variables. This work analyzes two
+existing 4-node hybrid stress quadrilateral elements due to Pian and Sumihara [T.H.H. Pian, K. Sumihara,
+Rational approach for assumed stress finite elements, Int. J. Numer. Methods Engrg. 20 (9) (1984) 1685–
+1695] and due to Xie and Zhou [X.P. Xie, T.X. Zhou, Optimization of stress modes by energy compatibility
+for 4-node hybrid quadrilaterals, Int. J. Numer. Methods Engrg. 59 (2004) 293–313], which behave
+robustly in numerical benchmark tests. For the finite elements, the isoparametric bilinear interpolation
+is used for the displacement approximation, while different piecewise-independent 5-parameter modes
+are employed for the stress approximation. We show that the two schemes are free from Poisson-locking,
+in the sense that the error bound in the a priori estimate is independent of the relevant Lamé constant k.
+We also establish the equivalence of the methods to two assumed enhanced strain schemes. Finally, we
+derive reliable and efficient residual-based a posteriori error estimators for the stress in L2
+-norm and the
+displacement in H1
+-norm, and verify the theoretical results by some numerical experiments.
+
+2011 Elsevier B.V. All rights reserved.ocking’’ for plane strain problems, at the nearly incom￾pressible limit (k ? 1 as m ? 0.5). We refer to [2] for the mathe￾matical characteristic of locking. To improve the performance of
+the isoparametric bilinear displacement element while preserving
+its convenience, various methods have been suggested in
+literature.
+The method of incompatible displacement modes is based on
+enriching the standard displacement modes with internal incom￾patible displacements. A representative incompatible displace￾ment is the so-called Wilson element proposed by Wilson et al.
+[31]. It achieves a greater degree of accuracy than the isoparamet￾ric bilinear element when using coarse meshes. This element was
+subsequently modified by Taylor et al. [29], and the modified Wil￾son element behaves uniformly in the nearly incompressibility. In
+[13], Lesaint analyzed convergence on uniform square meshes for
+Wilson element. He and Zlámal then established convergence for
+the modified Wilson element on arbitrary quadrilateral meshes
+[14]. In [27], Shi established a convergence condition for the quad￾rilateral Wilson element. In [37], Zhang derived uniform conver￾gence for the modified Wilson element on arbitrary quadrilateral
+meshes.
+The assumed-stress hybrid approach is a kind of mixed method
+based on the Hellinger–Reissner variational principle which in￾cludes displacements and stresses. The pioneering work in this
+0045-7825/$ - see front matter  2011 Elsevier B.V. All rights reserved.
+doi:10.1016/j.cma.2011.03.018
+⇑ Corresponding author.
+E-mail addresses: yuguozhumail@yahoo.com.cn (G. Yu), xpxiec@gmail.com (X.
+Xie), cc@math.hu-berlin.de (C. Carstensen).
+Comput. Methods Appl. Mech. Engrg. 200 (2011) 2421–2433
+Contents lists available at ScienceDirect
+Comput. Methods Appl. Mech. Engrg.
+journal homepage: www.elsevier.com/locate/cma
+direction is by Pian [17], where the assumed stress field assumed
+to satisfy the homogenous equilibrium equations pointwise. In
+[18] Pian and Chen proposed a new type of the hybrid-method
+by imposing the stress equilibrium equations in a variational sense
+and by adopting the natural co-ordinate for stress approximation.
+In [19] Pian and Sumihara derived the famous assumed stress hybrid element (abbreviated as the PS finite element) through a rational choice of stress terms. Despite of the use of isoparametric
+bilinear displacement approximation, the PS finite element yields
+uniformly accurate results for all the numerical benchmark tests.
+Pian and Tong [20] discussed the similarity and basic difference between the incompatible displacement model and the hybrid stress
+model. In the direction of determining the optimal stress parameters, there have been many other research efforts [21,32,34,35,38].
+In [34,35], Xie and Zhou derived robust 4-node hybrid stress quadrilateral elements by optimizing stress modes with a so-called energy-compatibility condition, i.e. the assumed stress terms are
+orthogonal to the enhanced strains caused by Wilson bubble
+displacements.
+Some mathematical issues of hybrid methods were studied by
+Babuska et al. [1], Oden and Lee [15], Oden and Reddy [16], and
+Raviart and Thomas [25] in 1970s. In [39] a convergence analysis
+was established for the PS element, but the upper bound in the error estimate is not uniform with respect to k. So far there is no uniform error analysis with respect to the nearly incompressibility for
+the assumed stress hybrid methods on arbitrary quadrilateral
+meshes.
+Closely related to the assumed stress method is the enhanced
+assumed strain method (EAS) pioneered by Simo and Rifai [28].
+Its variational basis is the Hu–Washizu principle which includes
+displacements, stresses, and enhanced strains. It was shown in
+[28] that the classical method of incompatible displacement modes
+is a special case of the EAS-method. Yeo and Lee [36] proved that
+the EAS concept in some model situation is equivalent to a Hellinger–Reissner formulation. In [26], Reddy and Simo established an a
+priori error estimate for the EAS method on parallelogram meshes.
+Braess [4] re-examined the sufficient conditions for convergence,
+in particular relating the stability condition to a strengthened Cauchy inequality, and elucidating the influence of the Lamé constant
+k. In [5], Braess et al. established uniform convergence and a posteriori estimates for the EAS method on parallelogram meshes.
+The main goal of this work is to establish uniform convergence
+and a posteriori error estimates for two 4-node assumed stress hybrid quadrilateral elements: the PS finite element by Pian and
+Sumihara [19] and the ECQ4 finite element by Xie and Zhou [34].
+Equivalence is established between the hybrid finite element
+schemes and two EAS proposed schemes. We also carry out an a
+posteriori error analysis for the hybrid methods.
+The paper is organized as follows. In Section 2 we discuss the
+uniform stability of the weak formulations. Section 3 is devoted
+to finite element formulations of the hybrid elements PS and
+ECQ4 and their numerical performance investigation. We establish
+the uniform stability conditions and derive uniform a priori error
+estimates in Section 4. Equivalence between the hybrid schemes
+and two EAS schemes is discussed in Section 5. We devote Section 6
+to an analysis of a posteriori error estimates for the hybrid methods and verification of the theoretical results by numerical tests.
+2. Uniform stability of the weak formulations
+First we introduce some notations. Let L2
+(T;X) be the space of
+square integrable functions defined on T with values in the
+finite-dimensional vector space X and with norm being denoted
+by kk0,T. We denote by Hk
+(T;X) the usual Sobolev space consisting
+of functions defined on T, taking values in X, and with all
+derivatives of order up to k square-integrable. The norm on Hk
+(T;X)
+is denoted by kkk;T :¼ P
+06j6kjvj
+2
+j;T
+ 
+1=2
+; with jjk,T the semi-norm
+derived from the partial derivatives of order equal to k. When there
+is no conflict, we may abbreviate them to kkk and jjk. Let L2
+0ðXÞ
+be the space of square integrable functions with zero mean values.
+We denote by Pk(T) the set of polynomials of degree less than or
+equal to k, by Qk the set of polynomials of degree less than or equal
+to k in each variable.
+For convenience, we use the notation a [ b to represent that
+there exists a generic positive constant C, independent of the mesh
+parameter h and the Lamé constant k, such that a 6 Cb. Finally,
+a  b abbreviates a [ b [ a.
+We define two spaces as follows:

@@ -1,0 +1,1 @@
+Transformer架构基于自注意力机制，彻底改变了NLP领域。BERT和GPT都是基于Transformer。

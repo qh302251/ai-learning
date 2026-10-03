@@ -1,0 +1,77 @@
+# ==================== Python ====================
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.venv/
+venv/
+env/
+
+# ==================== 模型权重 / 训练产物（极大，绝不入库）====================
+llm/models/
+llm/output_1.5b/
+llm/data_cleaned/
+llm/data_len_filtered/
+llm/dataset/
+llm/alpaca_data.json
+
+# 大数据/模型文件后缀（兜底）
+*.safetensors
+*.bin
+*.arrow
+*.pt
+*.pth
+*.ckpt
+*.onnx
+*.h5
+*.gguf
+*.parquet
+
+.tmp/
+
+# ==================== 密钥 / 敏感配置（绝不入库！）====================
+.env
+.env.*
+*.env
+!.env.example
+secrets.py
+config_local.py
+
+# ==================== 编辑器 / 工具 ====================
+.claude/
+.vscode/
+.idea/
+*.log
+
+# ==================== 图片 ====================
+*.jpg
+*.jpeg
+*.png
+
+# ==================== 运行时数据（SQLite / Agent 记忆库）====================
+# config.py 的 DATA_DIR 默认写回项目目录；-wal 才是真实数据，绝不能入库
+*.db
+*.db-wal
+*.db-shm
+*.sqlite
+*.sqlite3
+*.db-journal
+
+# ==================== Python 测试 / 类型检查缓存 ====================
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+htmlcov/
+
+# ==================== 操作系统 ====================
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ==================== 临时 / 备份 ====================
+*.bak
+*.orig
+*.rej
+*.swp

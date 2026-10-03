@@ -1,0 +1,32 @@
+# ============================================================
+#  个人知识库助手 —— 直接依赖（版本对齐本地已跑通的 pytorch_env）
+#
+#  ★ torch 故意不写在这里：
+#    直接从 PyPI 装会拉 CUDA 版（2GB+），而我们 0 显存用不上。
+#    Dockerfile 里单独用 --index-url .../whl/cpu 装 CPU 版。
+# ============================================================
+
+# --- Web 服务 ---
+fastapi==0.141.1
+uvicorn==0.53.0
+pydantic==2.13.5
+
+# --- Agent / 工作流 ---
+langgraph==1.2.11
+langgraph-checkpoint==4.2.0
+langgraph-checkpoint-sqlite==3.1.1
+langchain==1.4.0
+langchain-openai==1.6.0
+
+# --- 可观测 ---
+langfuse==4.15.4
+
+# --- RAG / 检索 ---
+sentence-transformers==5.6.0
+transformers==5.13.0
+numpy==2.1.2
+jieba==0.42.1
+
+# --- 其它 ---
+python-dotenv==1.2.3
+requests==2.34.2

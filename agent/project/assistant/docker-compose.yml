@@ -1,0 +1,40 @@
+# ============================================================
+#  个人知识库助手 —— 一键起服务
+#
+#     docker compose up -d          启动（后台）
+#     docker compose logs -f        看日志
+#     docker compose down           停止并删除容器
+#     docker compose up -d --build  改代码后重新构建并启动
+#
+#  构建上下文 = 本目录（. 指向 docker-compose.yml 所在目录）
+# ============================================================
+services:
+  assistant:
+    build: .
+    image: kb-assistant:latest
+    container_name: kb
+
+    ports:
+      - "8000:8000"
+
+    # ★ 密钥来自仓库根的 .env —— 绝不写进镜像，也绝不进 git
+    env_file:
+      - ../../../.env
+
+    environment:
+      # ★ 告诉应用：可写数据都在 /app/data（一个挂载目录里）
+      - KB_DATA_DIR=/app/data
+
+    volumes:
+      # ★ 复用宿主机已有的 HF 模型缓存（约 2.7GB），容器里不重复下载
+      - "${HF_CACHE}:/models"
+
+      # 运行时数据 —— 必须放【固定磁盘】！H 盘是可移动 FAT32，Docker 看不见它
+      #
+      # ★ 挂【整个目录】，绝不能只挂单个 .db 文件：
+      #   SQLite 的 WAL 模式会生成 lg_checkpoints.db-wal / -shm 两个兄弟文件。
+      #   单文件挂载时兄弟文件落在容器可写层 → docker compose down / --build
+      #   重建容器后，-wal 被抹掉 → 对话历史（真数据都在 -wal 里）全部丢失。
+      - "${KB_DATA}:/app/data"
+
+    restart: unless-stopped

@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>浩 ♥ 怡</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #ffd6e8 0%, #ffe3f0 40%, #e8d8ff 100%);
+    display: flex; justify-content: center; align-items: center;
+    padding: 20px;
+  }
+  /* 飘落的爱心装饰 */
+  .heart {
+    position: fixed; top: -40px; font-size: 24px; opacity: .55;
+    animation: fall linear infinite; pointer-events: none; z-index: 0;
+  }
+  @keyframes fall {
+    to { transform: translateY(110vh) rotate(360deg); }
+  }
+  .card {
+    position: relative; z-index: 1;
+    width: 100%; max-width: 720px; height: 86vh; max-height: 700px;
+    background: rgba(255, 255, 255, .85);
+    backdrop-filter: blur(8px);
+    border-radius: 24px;
+    box-shadow: 0 12px 40px rgba(255, 120, 180, .35);
+    overflow: hidden;
+    display: flex; flex-direction: column;
+  }
+  header {
+    background: linear-gradient(90deg, #ff7eb3, #c98bff);
+    color: #fff; text-align: center; padding: 18px 12px;
+  }
+  header h1 { font-size: 28px; letter-spacing: 3px; }
+  header p { font-size: 13px; opacity: .92; margin-top: 5px; }
+  #chat {
+    flex: 1; overflow-y: auto; padding: 18px 16px;
+    display: flex; flex-direction: column; gap: 12px;
+  }
+  .msg { display: flex; flex-direction: column; max-width: 82%; }
+  .msg .name { font-size: 12px; color: #b06ab3; margin-bottom: 3px; padding: 0 6px; }
+  .msg .bubble {
+    padding: 10px 14px; border-radius: 16px;
+    line-height: 1.6; font-size: 15px;
+    white-space: pre-wrap; word-break: break-word;
+  }
+  .msg.user { align-self: flex-end; align-items: flex-end; }
+  .msg.user .name { color: #d04a8e; }
+  .msg.user .bubble {
+    background: linear-gradient(135deg, #ff9ec0, #ff7eb3);
+    color: #fff; border-bottom-right-radius: 4px;
+    box-shadow: 0 3px 10px rgba(255, 110, 170, .35);
+  }
+  .msg.assistant { align-self: flex-start; align-items: flex-start; }
+  .msg.assistant .name { color: #8a5fd0; }
+  .msg.assistant .bubble {
+    background: #fff; color: #4a2c4f; border: 1px solid #ffd6e8;
+    border-bottom-left-radius: 4px;
+    box-shadow: 0 3px 10px rgba(180, 120, 255, .18);
+  }
+  #inputRow {
+    display: flex; gap: 10px; padding: 14px 16px;
+    border-top: 1px solid #ffe0ee; background: rgba(255, 255, 255, .6);
+  }
+  #input {
+    flex: 1; padding: 12px 16px; border: 2px solid #ffc2d9;
+    border-radius: 22px; font-size: 15px; outline: none; background: #fff;
+  }
+  #input:focus { border-color: #ff7eb3; box-shadow: 0 0 0 3px rgba(255, 126, 179, .2); }
+  button {
+    padding: 12px 22px; border: none; border-radius: 22px;
+    background: linear-gradient(135deg, #ff7eb3, #c98bff);
+    color: #fff; font-size: 15px; cursor: pointer;
+    box-shadow: 0 3px 10px rgba(255, 126, 179, .4);
+    transition: transform .15s;
+  }
+  button:hover { transform: translateY(-2px); }
+  button:active { transform: translateY(0); }
+</style>
+</head>
+<body>
+<div class="heart" style="left:6%; animation-duration:10s; animation-delay:0s;">❤</div>
+<div class="heart" style="left:22%; animation-duration:14s; animation-delay:2s;">💗</div>
+<div class="heart" style="left:38%; animation-duration:11s; animation-delay:5s;">💕</div>
+<div class="heart" style="left:56%; animation-duration:15s; animation-delay:1s;">💖</div>
+<div class="heart" style="left:72%; animation-duration:12s; animation-delay:7s;">❤</div>
+<div class="heart" style="left:88%; animation-duration:13s; animation-delay:3s;">💗</div>
+
+<div class="card">
+  <header>
+    <h1>浩 ♥ 怡</h1>
+    <p>我的微调模型（Qwen2.5-1.5B）陪你聊天</p>
+  </header>
+  <div id="chat"></div>
+  <div id="inputRow">
+    <input id="input" placeholder="输入你想说的话，按回车发送...">
+    <button onclick="send()">发送 ♥</button>
+  </div>
+</div>
+
+<script>
+const history = [];  // 保存对话历史，支持多轮
+const chatEl = document.getElementById('chat');
+const inputEl = document.getElementById('input');
+
+function addMsg(role, content) {
+  const div = document.createElement('div');
+  div.className = 'msg ' + role;
+
+  const name = document.createElement('div');
+  name.className = 'name';
+  name.textContent = role === 'user' ? '浩' : '崔';
+
+  const bubble = document.createElement('div');
+  bubble.className = 'bubble';
+  bubble.textContent = content;
+
+  div.appendChild(name);
+  div.appendChild(bubble);
+  chatEl.appendChild(div);
+  chatEl.scrollTop = chatEl.scrollHeight;
+}
+
+async function send() {
+  const text = inputEl.value.trim();
+  if (!text) return;
+  addMsg('user', text);
+  history.push({ role: 'user', content: text });
+  inputEl.value = '';
+  addMsg('assistant', '...正在思考...');
+
+  const resp = await fetch('/v1/chat/completions', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ model: 'qwen15-finetuned', messages: history })
+  });
+  const data = await resp.json();
+  const answer = data.choices[0].message.content;
+  chatEl.lastChild.remove();  // 删掉"正在思考..."
+  addMsg('assistant', answer);
+  history.push({ role: 'assistant', content: answer });
+}
+
+inputEl.addEventListener('keydown', e => { if (e.key === 'Enter') send(); });
+</script>
+</body>
+</html>
