@@ -57,6 +57,12 @@ config_local.py
 *.sqlite3
 *.db-journal
 
+# ---- Agent 长期记忆：程序运行时用 remember 改写，不是源码 ----
+# 覆盖两处：assistant/（tools/memory_tools.py）+ rag/（hello_agent v7/v8）
+memory.json
+# 跑 tests/ 时创建，正常测完会删；中途失败会残留
+test_memory.json
+
 # ==================== Python 测试 / 类型检查缓存 ====================
 .pytest_cache/
 .mypy_cache/

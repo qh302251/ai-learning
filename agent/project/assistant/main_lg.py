@@ -48,7 +48,10 @@ def main():
     # ★ 会话级配置：每次启动都不同，不进 build_agent()
     thread_config = {
         "recursion_limit": 10,
-        "configurable": {"thread_id": f"cli-{int(time.time())}"},
+        "configurable": {
+            "thread_id": f"cli-{int(time.time())}",
+            "user_id": "cli"
+            },
         "callbacks": [CallbackHandler()],
     }
 
