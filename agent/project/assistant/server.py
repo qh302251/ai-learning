@@ -14,9 +14,10 @@ app.state.agent。会话状态由 checkpointer 按 thread_id 隔离。
 import json
 from contextlib import asynccontextmanager
 
-from fastapi import Depends, Header, HTTPException
+from fastapi import Depends, HTTPException
 from fastapi import FastAPI
 from fastapi.responses import FileResponse, StreamingResponse
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from langchain_core.messages import HumanMessage
 from langgraph.types import Command
 from pydantic import BaseModel
@@ -131,12 +132,32 @@ USERS = {
     "sk-bob-demo-key":   "bob",
 }
 
-def current_user(authorization: str = Header(default="")) -> str:
-    """从 Authorization 头解析出 user_id。解析不出来 → 401。"""
-    scheme, _, key = authorization.partition(" ")
-    key = key.strip()
+# ★ 为什么用 HTTPBearer，而不是 Header(...)：
+#   OpenAPI 规范规定 —— 当 header 参数的名字是 Authorization / Accept / Content-Type 时，
+#   该 parameter 定义【必须被忽略】。后果很隐蔽：
+#     Swagger UI 照样把输入框画出来，但发送时【不带这个头】，
+#     于是文档里怎么点都是 401，而同一台机器上 curl 却是 200。
+#   正确做法：把认证声明成 securityScheme（HTTPBearer 就是干这个的），
+#   Swagger 才会显示右上角的 Authorize 按钮，并且真的把头发出去。
+#
+#   ★ auto_error=False：让 401 仍然由我们自己抛，
+#     从而保住现有的中文提示和 WWW-Authenticate 响应头（RFC 7235 要求）。
+bearer_scheme = HTTPBearer(auto_error=False)
 
-    if scheme.lower() != "bearer" or not key:
+
+def current_user(
+    cred: HTTPAuthorizationCredentials | None = Depends(bearer_scheme),
+) -> str:
+    """从 Authorization 头解析出 user_id。解析不出来 → 401。
+
+    ★ 换用 HTTPBearer 之前，这里写的是：
+        scheme, _, key = authorization.partition(" ")
+      HTTPBearer 已经替我们拆好了 scheme / key，所以只要取 cred.credentials。
+      注意 cred 为 None 有三种情形：头缺失 / 不是 Bearer / token 为空 —— 一律按"没认证"处理。
+    """
+    key = cred.credentials.strip() if cred else ""
+
+    if not key:
         raise HTTPException(
             status_code=401,
             detail="缺少或格式错误的 Authorization 头，应为：Bearer <key>",
