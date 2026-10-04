@@ -5,7 +5,13 @@ import json
 import requests
 
 
-def run_agent(messages: list, registry, api_config: dict, max_turns: int = 10) -> str:
+def run_agent(
+    messages: list,
+    registry,
+    api_config: dict,
+    max_turns: int = 10,
+    user_id: str | None = None,
+) -> str:
     """ReAct 主循环
 
     Args:
@@ -13,6 +19,10 @@ def run_agent(messages: list, registry, api_config: dict, max_turns: int = 10) -
         registry: ToolRegistry 实例
         api_config: 字典，包含 api_key, api_url, model
         max_turns: 最大工具调用轮数
+        user_id: 请求级用户标识，透传给【需要上下文】的工具（记忆类）。
+                 ★ 默认 None 是故意的（fail-closed）：
+                   需要 user_id 的工具会明确报错，而不是"拿不到就当全局"静默放行 ——
+                   那等于多用户隔离形同虚设。
     Returns:
         最终回复文本
     """
@@ -116,7 +126,14 @@ def run_agent(messages: list, registry, api_config: dict, max_turns: int = 10) -
                 print(f"  -> 调用 {func_name}({args})")
 
                 try:
-                    result = registry.dispatch(func_name, **args)
+                    # ★ 请求级上下文，与 agent_lg.py 的 tools_node 保持一致。
+                    #   registry 只把它转交给声明了 needs_context=True 的工具，
+                    #   其它工具完全感知不到 —— 不污染它们的签名。
+                    result = registry.dispatch(
+                        func_name,
+                        context={"user_id": user_id},
+                        **args,
+                    )
                 except Exception as e:
                     result = f"工具执行出错: {e}"
 

@@ -86,6 +86,13 @@ def main():
 
     # 7. 交互循环
     api_config = {"api_key": API_KEY, "api_url": API_URL, "model": MODEL}
+
+    # ★ 请求级用户标识（与 main_lg.py 的 config["configurable"]["user_id"] 对齐）
+    #   CLI 入口的使用者永远是开发者自己，所以固定 "cli" ——
+    #   它是一个独立的"测试租户"，与真实用户（alice / bob）的记忆完全隔离。
+    #   ★ 必须显式传入：记忆工具是 fail-closed 的，不传就明确报错。
+    user_id = "cli"
+
     tools_list = ", ".join(registry.list_tools())
     print(f"\n个人知识库助手已启动！（当前工具: {tools_list}）")
     print("输入 exit 退出\n")
@@ -104,7 +111,7 @@ def main():
             continue
 
         messages.append({"role": "user", "content": user_input})
-        run_agent(messages, registry, api_config)
+        run_agent(messages, registry, api_config, user_id=user_id)
         print()
 
     # 清理

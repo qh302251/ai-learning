@@ -8,27 +8,15 @@ import os
 import sys
 from pathlib import Path
 
-# ============ 路径（所有"文件在哪"都从这里取）============
-BASE_DIR = Path(__file__).resolve().parent
-
-# ---- 只读资源：跟着代码走（烤进镜像）----
-KNOWLEDGE_DIR = BASE_DIR / "knowledge"
-MCP_SCRIPT = BASE_DIR / "mcp_server.py"
-STATIC_DIR = BASE_DIR / "static"
-
-# ---- 可写数据：默认与代码同目录（本地开发），容器里用环境变量指到挂载目录 ----
-# ★ 为什么必须可覆盖：
-#   SQLite 开 WAL 后会生成 -wal / -shm 两个【兄弟文件】。
-#   如果只把 lg_checkpoints.db 单文件挂进容器，兄弟文件就落在容器可写层 ——
-#   容器一重建（--build / down）数据全丢。
-#   所以：挂【目录】，并让代码知道数据在哪个目录。
-DATA_DIR = Path(os.getenv("KB_DATA_DIR", str(BASE_DIR)))
-
-MEMORY_PATH = DATA_DIR / "memory.json"
-DB_PATH = DATA_DIR / "lg_checkpoints.db"
-
-
-# ============ 仓库根：只用于本地开发时找 .env ============
+# ============ 仓库根 & .env 加载（★ 必须最先执行）============
+# ★ 顺序很关键：下面每一个 os.getenv(...) 都依赖 .env 已经灌进 os.environ。
+#
+#   历史上的坑：_load_local_dotenv() 原本写在 DATA_DIR 之后，
+#   于是 .env 里写的 KB_DATA_DIR 读不到 —— 而且是【静默失效】：
+#   不报错、不提示，数据只是悄悄落回了代码目录。
+#
+#   这就是"配置文件写了但没生效"这一类最难查的 bug。
+#   现在把加载提到所有 getenv 之前，兑现本文件开头"环境变量 > .env"的承诺。
 def _find_repo_root() -> Path:
     """向上查找含 common_config.py 的目录（common_config.py 放在仓库根）。"""
     for parent in Path(__file__).resolve().parents:
@@ -52,6 +40,26 @@ def _load_local_dotenv() -> None:
 
 
 _load_local_dotenv()
+
+
+# ============ 路径（所有"文件在哪"都从这里取）============
+BASE_DIR = Path(__file__).resolve().parent
+
+# ---- 只读资源：跟着代码走（烤进镜像）----
+KNOWLEDGE_DIR = BASE_DIR / "knowledge"
+MCP_SCRIPT = BASE_DIR / "mcp_server.py"
+STATIC_DIR = BASE_DIR / "static"
+
+# ---- 可写数据：默认与代码同目录（本地开发），容器里用环境变量指到挂载目录 ----
+# ★ 为什么必须可覆盖：
+#   SQLite 开 WAL 后会生成 -wal / -shm 两个【兄弟文件】。
+#   如果只把 lg_checkpoints.db 单文件挂进容器，兄弟文件就落在容器可写层 ——
+#   容器一重建（--build / down）数据全丢。
+#   所以：挂【目录】，并让代码知道数据在哪个目录。
+DATA_DIR = Path(os.getenv("KB_DATA_DIR", str(BASE_DIR)))
+
+MEMORY_PATH = DATA_DIR / "memory.json"
+DB_PATH = DATA_DIR / "lg_checkpoints.db"
 
 
 # ============ 模型（环境变量优先，其次 .env 灌进来的值）============
